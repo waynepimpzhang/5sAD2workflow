@@ -1,0 +1,931 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>三支 5 秒視差廣告是怎麼做出來的</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+<style>
+:root{
+  --bg:#0B100E; --bg-2:#0F1614; --surface:#141D19; --surface-hi:#1B2622;
+  --line:#233129; --line-hi:#33463B;
+  --text:#E8F0EA; --text-2:#9DB1A5; --text-3:#6E8278;
+  --gr:#00A44F; --gr-hi:#2FD07B; --gr-dim:#00A44F22;
+  --mint:#7FD8E8; --mint-dim:#7FD8E81A;
+  --ochre:#C4913C; --ochre-hi:#E0AC55;
+  --red:#B85548; --red-hi:#D9776A;
+  --f-head:"Noto Serif TC",Georgia,"Songti TC",serif;
+  --f-body:"Noto Sans TC",-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --rail:268px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--f-body);
+  font-weight:300;font-size:18px;line-height:1.9;-webkit-font-smoothing:antialiased}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+img{max-width:100%;display:block}
+
+/* rail */
+.rail{position:fixed;left:0;top:0;bottom:0;width:var(--rail);z-index:30;
+  border-right:1px solid var(--line);background:var(--bg-2);display:flex;flex-direction:column}
+.rail-top{padding:22px 20px 14px;border-bottom:1px solid var(--line)}
+.rail-top .brand{font-family:var(--f-mono);font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gr-hi);margin:0 0 6px}
+.rail-top .ttl{font-family:var(--f-head);font-weight:700;font-size:16.5px;line-height:1.5;margin:0}
+.rail-nav{overflow-y:auto;padding:10px 0 24px;flex:1}
+.rail-nav a{display:grid;grid-template-columns:26px 1fr;gap:9px;align-items:baseline;
+  padding:7px 20px;text-decoration:none;color:var(--text-3);font-size:13.5px;line-height:1.6;
+  border-left:2px solid transparent;transition:color .15s,border-color .15s,background .15s}
+.rail-nav a .n{font-family:var(--f-mono);font-size:11px}
+.rail-nav a:hover{color:var(--text-2);background:#ffffff05}
+.rail-nav a.on{color:var(--text);border-left-color:var(--gr);background:var(--gr-dim)}
+.rail-nav a.on .n{color:var(--gr-hi)}
+.rail-nav a.brk.on{border-left-color:var(--ochre);background:#C4913C1A}
+.rail-nav a.brk.on .n{color:var(--ochre-hi)}
+.topbar{display:none}
+@media(max-width:1060px){
+  .rail{display:none}
+  .topbar{display:block;position:sticky;top:0;z-index:30;background:rgba(11,16,14,.92);
+    backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .topbar .inner{display:flex;gap:4px;overflow-x:auto;padding:9px 16px}
+  .topbar a{flex:0 0 auto;font-family:var(--f-mono);font-size:12px;color:var(--text-3);
+    text-decoration:none;padding:4px 9px;border:1px solid transparent;border-radius:2px;white-space:nowrap}
+  .topbar a.on{color:var(--gr-hi);border-color:var(--gr);background:var(--gr-dim)}
+}
+.shell{margin-left:var(--rail);padding:0 48px}
+@media(max-width:1160px){.shell{margin-left:0;padding:0 20px}}
+.col{max-width:860px;margin:0 auto}
+.wide{max-width:1180px;margin:0 auto}
+
+/* hero */
+.hero{padding:104px 0 72px;border-bottom:1px solid var(--line)}
+.hero .kicker{font-family:var(--f-mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--gr-hi);margin:0 0 22px}
+.hero h1{font-family:var(--f-head);font-weight:700;font-size:clamp(34px,5.2vw,56px);
+  line-height:1.24;margin:0 0 24px;text-wrap:balance}
+.hero .lede{color:var(--text-2);font-size:19px;max-width:56ch;margin:0 0 18px}
+.hero .lede strong{color:var(--text);font-weight:500}
+.method{border:1px solid var(--line);border-left:2px solid var(--gr);background:var(--surface);
+  padding:17px 20px;margin:26px 0 38px;max-width:62ch;font-size:16.5px;color:var(--text-2);line-height:1.85}
+.method b{display:block;font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--gr-hi);font-weight:600;margin-bottom:5px}
+.method strong{color:var(--text);font-weight:500}
+.facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);
+  border:1px solid var(--line)}
+@media(max-width:640px){.facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.fact{background:var(--bg-2);padding:15px 17px}
+.fact dt{font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--text-3);margin:0 0 5px}
+.fact dd{margin:0;font-family:var(--f-mono);font-size:23px;font-weight:600;
+  font-variant-numeric:tabular-nums;line-height:1.2}
+.fact dd small{font-size:13px;color:var(--text-3);font-weight:400;margin-left:3px}
+
+/* chapter */
+.ch{padding:86px 0;border-bottom:1px solid var(--line);scroll-margin-top:20px}
+@media(max-width:1060px){.ch{scroll-margin-top:60px;padding:64px 0}}
+.ch-num{font-family:var(--f-mono);font-size:12px;letter-spacing:.2em;color:var(--gr-hi);
+  margin:0 0 13px;display:flex;align-items:center;gap:12px}
+.ch-num::after{content:"";flex:1;height:1px;background:var(--line)}
+.ch.brk .ch-num{color:var(--ochre-hi)}
+.ch h2{font-family:var(--f-head);font-weight:700;font-size:clamp(26px,3.4vw,36px);
+  line-height:1.36;margin:0 0 26px;text-wrap:balance}
+.ch h3{font-family:var(--f-head);font-weight:600;font-size:21px;line-height:1.5;
+  margin:46px 0 16px;color:var(--text)}
+.ch p{margin:0 0 20px;color:var(--text-2)}
+.ch p strong{color:var(--text);font-weight:500}
+.ch ul,.ch ol{margin:0 0 22px;padding-left:1.3em;color:var(--text-2)}
+.ch li{margin:0 0 9px}
+.ch li strong{color:var(--text);font-weight:500}
+.lead{font-size:20px;color:var(--text);font-weight:400}
+
+.pull{border-left:2px solid var(--gr);padding:4px 0 4px 20px;margin:30px 0;
+  font-family:var(--f-head);font-weight:600;font-size:22px;line-height:1.62;color:var(--text)}
+.note{border:1px solid var(--line);background:var(--surface);padding:16px 19px;margin:26px 0;
+  font-size:16px;color:var(--text-2);line-height:1.82}
+.note b{display:block;font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--mint);font-weight:600;margin-bottom:6px}
+.note.warn{border-left:2px solid var(--ochre)} .note.warn b{color:var(--ochre-hi)}
+.note.bad{border-left:2px solid var(--red)} .note.bad b{color:var(--red-hi)}
+.note.good{border-left:2px solid var(--gr)} .note.good b{color:var(--gr-hi)}
+.note strong{color:var(--text);font-weight:500}
+
+details.tech{border:1px solid var(--line);background:var(--bg-2);margin:24px 0;padding:0}
+details.tech summary{cursor:pointer;padding:13px 18px;font-family:var(--f-mono);font-size:12.5px;
+  letter-spacing:.06em;color:var(--text-3);list-style:none}
+details.tech summary::-webkit-details-marker{display:none}
+details.tech summary::before{content:"＋ ";color:var(--mint)}
+details.tech[open] summary::before{content:"－ "}
+details.tech summary:hover{color:var(--text-2)}
+details.tech .body{padding:2px 18px 18px;font-size:15.5px;color:var(--text-2);line-height:1.8}
+details.tech .body p{font-size:15.5px}
+details.tech .body code{font-family:var(--f-mono);font-size:13px;background:var(--surface-hi);
+  padding:1px 5px;border-radius:2px;color:var(--mint)}
+
+figure{margin:30px 0}
+figure img{border:1px solid var(--line);background:var(--surface)}
+figcaption{font-size:14px;color:var(--text-3);margin-top:9px;line-height:1.7}
+.grid{display:grid;gap:14px;margin:30px 0}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:760px){.g3,.g4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:460px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.grid figure{margin:0}
+.tile{border:1px solid var(--line);background:var(--bg-2);padding:14px 16px}
+.tile h4{margin:0 0 7px;font-size:15.5px;font-weight:500;color:var(--text)}
+.tile p{margin:0;font-size:14.5px;color:var(--text-2);line-height:1.75}
+.tile .tag{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--gr-hi);display:block;margin-bottom:7px}
+
+table{width:100%;border-collapse:collapse;margin:28px 0;font-size:15.5px}
+th,td{border:1px solid var(--line);padding:10px 13px;text-align:left;vertical-align:top;color:var(--text-2)}
+th{background:var(--bg-2);color:var(--text);font-weight:500;font-size:14px}
+td strong{color:var(--text);font-weight:500}
+.tablewrap{overflow-x:auto}
+
+.steps{counter-reset:s;margin:30px 0;padding:0;list-style:none}
+.steps li{counter-increment:s;position:relative;padding:0 0 22px 46px;border-left:1px solid var(--line);
+  margin-left:12px}
+.steps li:last-child{border-left-color:transparent;padding-bottom:0}
+.steps li::before{content:counter(s,decimal-leading-zero);position:absolute;left:-13px;top:-2px;
+  width:26px;height:26px;border:1px solid var(--line-hi);background:var(--bg);border-radius:50%;
+  font-family:var(--f-mono);font-size:11px;color:var(--gr-hi);display:grid;place-items:center}
+.steps li h4{margin:0 0 6px;font-size:16.5px;font-weight:500;color:var(--text)}
+.steps li p{margin:0;font-size:15.5px}
+
+.chnav{display:flex;justify-content:space-between;gap:16px;margin-top:52px;padding-top:20px;
+  border-top:1px solid var(--line);font-family:var(--f-mono);font-size:12.5px}
+.chnav a{color:var(--text-3);text-decoration:none}
+.chnav a:hover{color:var(--gr-hi)}
+.chnav a.next{margin-left:auto;text-align:right}
+
+/* ---------- scroll demo ---------- */
+.demo{position:relative;height:360vh;margin:44px 0 0}
+.demo .stage{position:sticky;top:0;height:100vh;display:flex;align-items:center;justify-content:center;
+  gap:clamp(16px,4vw,64px);padding:20px;flex-wrap:wrap}
+.phone{position:relative;flex:0 0 auto;height:min(78vh,720px);aspect-ratio:640/1280;
+  border:1px solid var(--line-hi);border-radius:22px;background:#000;overflow:hidden;
+  box-shadow:0 30px 80px -30px #000,0 0 0 8px #0d1211}
+.phone canvas{width:100%;height:100%;display:block;object-fit:contain;background:#000}
+.phone .load{position:absolute;inset:0;display:grid;place-items:center;background:#0B100E;
+  font-family:var(--f-mono);font-size:12px;color:var(--text-3);gap:12px;transition:opacity .4s}
+.phone .load.done{opacity:0;pointer-events:none}
+.phone .load .track{width:120px;height:2px;background:var(--line);overflow:hidden}
+.phone .load .track i{display:block;height:100%;width:0;background:var(--gr-hi);transition:width .2s}
+.demo .side{flex:0 1 320px;min-width:0}
+.demo .side .tag{font-family:var(--f-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gr-hi);margin:0 0 10px}
+.demo .side h3{font-family:var(--f-head);font-weight:700;font-size:24px;line-height:1.4;margin:0 0 14px;color:var(--text)}
+.demo .side p{font-size:15.5px;color:var(--text-2);margin:0 0 16px;line-height:1.8}
+.scrub{height:2px;background:var(--line);margin:18px 0 8px;position:relative}
+.scrub i{position:absolute;left:0;top:0;height:100%;width:0;background:var(--gr-hi)}
+.scrub-meta{display:flex;justify-content:space-between;gap:14px;font-family:var(--f-mono);font-size:11px;
+  color:var(--text-3);font-variant-numeric:tabular-nums}
+.hint{font-family:var(--f-mono);font-size:11.5px;color:var(--mint);letter-spacing:.06em;margin-top:18px}
+.hint span{display:inline-block;animation:bob 1.8s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
+@media(max-width:860px){
+  .demo{height:300vh}
+  .demo .stage{flex-direction:column;gap:14px;justify-content:flex-start;padding-top:5vh}
+  .phone{height:min(60vh,560px)}
+  .demo .side{flex:0 0 auto;max-width:520px;text-align:center}
+  .demo .side p:not(.tag):not(.hint){display:none}
+  .demo .side h3{font-size:21px;margin-bottom:6px}
+}
+
+video.clip{width:100%;border:1px solid var(--line);background:#000;display:block}
+.vid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:30px 0}
+@media(max-width:620px){.vid2{grid-template-columns:1fr}}
+.vid2 figure{margin:0}
+
+footer{padding:70px 0 110px;color:var(--text-3);font-size:15px}
+footer a{color:var(--text-2)}
+.kv-swatch{display:flex;gap:8px;margin:18px 0 30px;flex-wrap:wrap}
+.kv-swatch div{flex:1 1 110px;height:56px;border:1px solid var(--line);display:grid;place-items:end;
+  font-family:var(--f-mono);font-size:10px;padding:5px;color:#0007}
+</style>
+</head>
+<body>
+
+<nav class="rail">
+  <div class="rail-top">
+    <p class="brand">Darlie 好來 · Activemint</p>
+    <p class="ttl">三支 5 秒視差廣告<br>是怎麼做出來的</p>
+  </div>
+  <div class="rail-nav" id="railnav">
+    <a href="#c00"><span class="n">00</span><span>一張 KV，三個方向</span></a>
+    <a href="#c01"><span class="n">01</span><span>先搞懂這個版位</span></a>
+    <a href="#c02"><span class="n">02</span><span>共同的 INSIGHT</span></a>
+    <a href="#c03"><span class="n">03</span><span>第一支 · 臭豆腐頭</span></a>
+    <a href="#c04"><span class="n">04</span><span>第二支 · 口氣消消樂</span></a>
+    <a href="#c05"><span class="n">05</span><span>第三支 · 時尚穿搭</span></a>
+    <a href="#c06"><span class="n">06</span><span>三支的鏡頭不重複</span></a>
+    <a href="#c07" class="brk"><span class="n">07</span><span>踩過的坑</span></a>
+    <a href="#c08"><span class="n">08</span><span>可以重複用的流程</span></a>
+    <a href="#c09"><span class="n">09</span><span>工具與分工</span></a>
+  </div>
+</nav>
+
+<div class="topbar"><div class="inner" id="topnav">
+  <a href="#c00">00 三個方向</a>
+  <a href="#c01">01 版位</a>
+  <a href="#c02">02 INSIGHT</a>
+  <a href="#c03">03 臭豆腐頭</a>
+  <a href="#c04">04 消消樂</a>
+  <a href="#c05">05 時尚穿搭</a>
+  <a href="#c06">06 鏡頭</a>
+  <a href="#c07" class="brk">07 踩坑</a>
+  <a href="#c08">08 流程</a>
+  <a href="#c09">09 工具</a>
+</div></div>
+
+<main class="shell">
+
+<header class="hero col">
+  <p class="kicker">5 秒 · 9:16 · 視差滾動版位</p>
+  <h1>同一張 KV，三個完全不同的 5 秒</h1>
+  <p class="lede">一張平面 KV、一句核准過的訴求「<strong>有效消除 100 種食物氣味</strong>」，
+  我們做出了三支 5 秒廣告。三支的 TA 不同、切入點不同、連運鏡都刻意不一樣。</p>
+  <p class="lede">這頁把三支的<strong>創意怎麼長出來</strong>、以及<strong>怎麼真的做出來</strong>
+  完整攤開。技術的部分只留下你需要知道的程度，重點放在每一個決定背後的理由。</p>
+  <div class="method">
+    <b>怎麼看這一頁</b>
+    三支片各有一個<strong>可以用滑的展示區</strong>。滑到那裡的時候，
+    畫面會跟著你的手指前進或後退 —— 那就是使用者在真實版位上看到這支廣告的樣子。
+    <strong>試著滑慢一點、滑回去，或停在中間。</strong>
+  </div>
+  <dl class="facts">
+    <div class="fact"><dt>影片</dt><dd>3<small>支</small></dd></div>
+    <div class="fact"><dt>每支長度</dt><dd>5.0<small>秒</small></dd></div>
+    <div class="fact"><dt>每支幀數</dt><dd>121<small>張</small></dd></div>
+    <div class="fact"><dt>訴求</dt><dd>100<small>種氣味</small></dd></div>
+  </dl>
+</header>
+
+<!-- 00 -->
+<section class="ch col" id="c00">
+  <p class="ch-num">00</p>
+  <h2>起點：一張 KV，可以長出三個完全不同的方向</h2>
+  <p class="lead">拿到的東西非常少：一張品牌 KV、兩個 TA（有家庭的父母、在意口腔異味的上班族），
+  一句核准過的訴求。沒有腳本、沒有分鏡、沒有參考片。</p>
+  <p>5 秒能做的事情很有限，所以第一個決定不是「要拍什麼」，而是
+  <strong>「同一件事，可以從幾個角度講」</strong>。我們先不收斂，先發散出六個方向，
+  再挑出三個彼此差異最大的往下做。</p>
+  <div class="grid g3">
+    <div class="tile"><span class="tag">第一支</span><h4>臭豆腐頭</h4>
+      <p>上班族。把「別人聞到的你」直接畫出來 —— 你的頭就是你剛吃的那個東西。</p></div>
+    <div class="tile"><span class="tag">第二支</span><h4>口氣消消樂</h4>
+      <p>泛用。把口腔變成一款手遊關卡，牙刷是武器，食物氣味是小怪。</p></div>
+    <div class="tile"><span class="tag">第三支</span><h4>時尚穿搭</h4>
+      <p>都會男女。口氣好不是衛生問題，是最高級的時尚配件。</p></div>
+  </div>
+  <p>三個方向刻意拉開：<strong>一個超現實、一個遊戲化、一個時尚感</strong>。
+  這樣提案的時候不會變成「三個很像的東西挑一個」，而是三種完全不同的路。</p>
+  <nav class="chnav"><span></span><a class="next" href="#c01">下一章 · 先搞懂這個版位 →</a></nav>
+</section>
+
+<!-- 01 -->
+<section class="ch col" id="c01">
+  <p class="ch-num">01</p>
+  <h2>先搞懂這個版位：它不是一支影片，是一段被手指控制的動畫</h2>
+  <p class="lead">視差滾動版位（Parallax Scrolling）跟一般影片廣告最大的差別是：
+  <strong>播放速度不在我們手上，在使用者的手指上。</strong></p>
+  <p>使用者往下滑，畫面往前跑；往回滑，畫面倒退；停住，畫面就停在那一格。
+  他可以在任何一個瞬間停下來仔細看，也可以兩秒滑完。</p>
+  <div class="grid g2">
+    <div class="tile"><span class="tag">好處</span><h4>使用者會停下來看</h4>
+      <p>他不是被動接收，是主動操作。只要畫面有東西可看，他就會慢慢滑、來回滑。
+      這是一般 5 秒影片拿不到的注意力。</p></div>
+    <div class="tile"><span class="tag">限制</span><h4>任何一格都可能被看很久</h4>
+      <p>不能有「反正很快帶過」的畫面。每一格都要成立，中間也不能有破綻。</p></div>
+  </div>
+  <div class="note good">
+    <b>這對創意的實際影響</b>
+    因為使用者可以隨意停格，所以<strong>畫面資訊可以放得比一般 5 秒片更多</strong>。
+    第二支「口氣消消樂」就是吃準這一點 —— 畫面裡塞了八種小怪、進度條、計數器，
+    正常 5 秒影片會看不清楚，但在這個版位上，使用者會自己停下來一個一個看。
+  </div>
+  <h3>我們的製作規格</h3>
+  <div class="tablewrap"><table>
+    <tr><th>項目</th><th>設定</th><th>為什麼</th></tr>
+    <tr><td>長度</td><td>5.0 秒 / 121 張</td><td>版位規格，等於 24fps 的 5 秒</td></tr>
+    <tr><td>比例</td><td>9:16 直式</td><td>手機滿版</td></tr>
+    <tr><td>結構</td><td>A → B（首尾兩個定格）</td><td>AI 生成影片最穩定的形式：給頭尾，讓它補中間</td></tr>
+    <tr><td>下方區域</td><td>保留給產品與文案</td><td>三支的最後都要收在產品上</td></tr>
+  </table></div>
+  <nav class="chnav"><a href="#c00">← 上一章</a><a class="next" href="#c02">下一章 · 共同的 INSIGHT →</a></nav>
+</section>
+
+<!-- 02 -->
+<section class="ch col" id="c02">
+  <p class="ch-num">02</p>
+  <h2>共同的 INSIGHT：口氣不是清潔問題，是社交問題</h2>
+  <p class="lead">如果把「消除 100 種食物氣味」當成清潔功能講，就會做出第一百支一樣的牙膏廣告。
+  所以我們先把問題重新定義了一次。</p>
+  <div class="pull">
+    你刷牙不是為了牙齒，是為了<strong>等一下要靠近的那個人</strong>。<br>
+    口氣是一件「自己聞不到、但別人一定聞得到」的事。
+  </div>
+  <p>這個 INSIGHT 有兩個很好用的性質：</p>
+  <ul>
+    <li><strong>它天生有畫面。</strong>「別人聞到的你」是一個可以視覺化的東西 —— 第一支就是直接把它畫出來。</li>
+    <li><strong>它天生有情境。</strong>開會前、約會前、拍照前 —— 每一個情境都是一支片。</li>
+  </ul>
+  <p>三支片都扣在這個 INSIGHT 上，只是講的方式不同：<strong>第一支講恐懼、第二支講爽感、第三支講自信。</strong>
+  這三種情緒溫度剛好排成一條線，提案時是完整的一組，不是三個散裝的點子。</p>
+  <div class="note warn">
+    <b>一個從頭到尾都要守住的線</b>
+    核准過的訴求是「<strong>有效消除 100 種食物氣味</strong>」——
+    講的是<strong>食物氣味</strong>，不是細菌。所以三支片裡的小怪、氣味、髒污，
+    全部都以「食物」為造型，不能出現細菌或病菌的樣子。
+    在台灣，抗菌是另一個層級的宣稱，畫面畫了就等於講了。
+  </div>
+  <nav class="chnav"><a href="#c01">← 上一章</a><a class="next" href="#c03">下一章 · 第一支 →</a></nav>
+</section>
+
+<!-- 03 -->
+<section class="ch col" id="c03">
+  <p class="ch-num">03 · 第一支</p>
+  <h2>臭豆腐頭：把「別人聞到的你」直接長在你脖子上</h2>
+  <p class="lead">一個上班族走進會議室，同事默默退開。
+  因為在別人眼裡，<strong>他的頭就是一塊剛吃完的臭豆腐。</strong></p>
+  <h3>創意是怎麼收斂出來的</h3>
+  <p>一開始的版本比較安全：用飄散的氣味線、或是同事皺眉的表情來表現。
+  但這兩種都太常見，而且在 5 秒裡讀不出來。</p>
+  <p>後來的轉折是把 INSIGHT 逼到最極端 —— <strong>如果別人聞到的就是你的全部，
+  那不如直接讓那個氣味變成你的臉。</strong>一旦這樣定義，畫面就自己長出來了：
+  不需要任何說明文字，任何人看第一眼就懂。</p>
+  <figure>
+    <img src="assets/a1_tofuhead.jpg" alt="臭豆腐頭上班族" loading="lazy">
+    <figcaption>核心視覺。荒謬，但完全不需要解釋 —— 這是 5 秒片最需要的性質。</figcaption>
+  </figure>
+  <div class="note good">
+    <b>為什麼選臭豆腐</b>
+    它是台灣人共同的氣味記憶，<strong>不需要任何文化翻譯</strong>。
+    而且它有明確的造型 —— 方形、炸得金黃、上面一坨泡菜 —— 可以直接當成一顆頭。
+    換成咖哩或大蒜就沒有這個好處。
+  </div>
+
+  <h3>三個定格的結構</h3>
+  <p>5 秒裝不下一個故事，但裝得下<strong>三個定格</strong>。我們把它設計成鏡頭往下穿過三個樓層：</p>
+  <ol class="steps">
+    <li><h4>會議室：問題</h4><p>臭豆腐頭的男子走進會議室，兩側同事往外退。</p></li>
+    <li><h4>洗手台：行動</h4><p>鏡頭往下一層，他在鏡子前刷牙。</p></li>
+    <li><h4>回到會議室：結果</h4><p>再往下一層，他恢復成正常的臉，同事靠回來。</p></li>
+  </ol>
+  <p>三個定格之間用<strong>垂直穿過樓板的鏡頭移動</strong>連起來 ——
+  這個運鏡本身就在講「往下深入到問題的根源，再回來」。</p>
+
+  <h3>怎麼做出來的</h3>
+  <p>AI 生成影片最大的問題是<strong>它不知道鏡頭該怎麼走</strong>。
+  文字寫得再詳細，它還是會給你一個它自己想像的運鏡。</p>
+  <p>解法是先在 3D 軟體裡把鏡頭運動「排練」一次 ——
+  用最簡單的灰色方塊搭出空間和人物，把鏡頭的路徑、速度、加減速全部做好，
+  輸出成一支小影片，再把它當成範本餵給 AI。</p>
+  <figure>
+    <video class="clip" src="assets/greybox_office.mp4" autoplay muted loop playsinline controls preload="metadata"></video>
+    <figcaption>這就是所謂的「白模」。醜沒關係 —— 它唯一的工作是告訴 AI 鏡頭怎麼走、人站在哪裡。</figcaption>
+  </figure>
+  <details class="tech"><summary>技術細節：白模到底做了什麼（想了解可以展開）</summary>
+    <div class="body">
+      <p>在 Blender 裡用純灰色方塊搭出三層空間，攝影機從上往下垂直移動，穿過兩層樓板。
+      重點只有四件事：</p>
+      <ul>
+        <li><strong>鏡頭的加減速。</strong>停在定格時慢、轉場時快，兩段轉場都做了 ease-in-out，
+        AI 才知道哪裡該停、哪裡該衝。</li>
+        <li><strong>人物的相對位置。</strong>誰在左、誰在右、誰離鏡頭多近，要跟 KV 對得起來。</li>
+        <li><strong>鏡頭焦段。</strong>太廣角會變魚眼，這支最後用 49mm。</li>
+        <li><strong>不要有東西擋鏡頭。</strong>第一版有幾個方塊剛好卡在鏡頭前，全部拿掉。</li>
+      </ul>
+      <p>人物用的是現成的可動人偶骨架，擺好姿勢就好，不需要做角色建模。</p>
+    </div>
+  </details>
+
+  <h3>把場景和角色拆成「零件」</h3>
+  <p>光有鏡頭還不夠，AI 還需要知道「長什麼樣子」。
+  所以我們另外生成了一組參考圖，每個角色給多角度、每個場景給多視角，
+  讓 AI 不會在 5 秒內把人臉換掉。</p>
+  <div class="grid g3">
+    <figure><img src="assets/a1_el_tofuman.jpg" alt="臭豆腐頭多角度" loading="lazy"><figcaption>主角的四個角度</figcaption></figure>
+    <figure><img src="assets/a1_el_manface.jpg" alt="人物多角度" loading="lazy"><figcaption>恢復正常後的臉</figcaption></figure>
+    <figure><img src="assets/a1_el_office2.jpg" alt="會議室" loading="lazy"><figcaption>會議室空景</figcaption></figure>
+    <figure><img src="assets/a1_el_office1.jpg" alt="會議室直式" loading="lazy"><figcaption>會議室直式構圖</figcaption></figure>
+    <figure><img src="assets/a1_el_restroom1.jpg" alt="洗手間" loading="lazy"><figcaption>洗手台場景</figcaption></figure>
+    <figure><img src="assets/a1_el_restroom2.jpg" alt="洗手間 2" loading="lazy"><figcaption>洗手台第二視角</figcaption></figure>
+  </div>
+  <div class="note">
+    <b>為什麼要給這麼多角度</b>
+    AI 生成影片時，只要鏡頭一轉，它就得「想像」背面長什麼樣。
+    給了多角度參考之後，它就不用猜 —— 這是讓 5 秒內臉不會變的關鍵。
+  </div>
+</section>
+
+<!-- demo 1 -->
+<section class="demo" data-base="webassets/idea1_sq/idea1_" data-count="121" id="demo1">
+  <div class="stage">
+    <div class="phone">
+      <canvas width="640" height="1280"></canvas>
+      <div class="load"><div>載入中<span class="pct"> 0%</span></div><div class="track"><i></i></div></div>
+    </div>
+    <div class="side">
+      <p class="tag">第一支 · 完成片</p>
+      <h3>臭豆腐頭</h3>
+      <p>往下滑，畫面就會前進。試著滑到中間停住 ——
+      你會看到鏡頭正在穿過樓板，這一格是一般影片不會讓你看到的。</p>
+      <div class="scrub"><i></i></div>
+      <div class="scrub-meta"><span class="f">FRAME 001 / 121</span><span class="t">0.00s</span></div>
+      <p class="hint"><span>↓</span> 用滑的</p>
+    </div>
+  </div>
+</section>
+
+<section class="ch col">
+  <div class="note good">
+    <b>這支在溝通什麼</b>
+    <strong>TA：</strong>在意口腔異味的上班族。<br>
+    <strong>概念：</strong>別人聞到的你，就是你剛吃的那個東西。<br>
+    <strong>情緒：</strong>恐懼 → 行動 → 解除。是三支裡最接近傳統廣告結構的一支，
+    也是最容易被理解的一支。
+  </div>
+  <nav class="chnav"><a href="#c02">← 上一章</a><a class="next" href="#c04">下一章 · 第二支 →</a></nav>
+</section>
+
+<!-- 04 -->
+<section class="ch col" id="c04">
+  <p class="ch-num">04 · 第二支</p>
+  <h2>口氣消消樂：把口腔變成一款手遊關卡</h2>
+  <p class="lead">牙齒排成一圈，上面坐著八隻食物小怪。牙刷從左邊掃進來，
+  把它們一隻一隻清掉。<strong>五秒，就是一個關卡通關的過程。</strong></p>
+  <h3>為什麼是遊戲</h3>
+  <p>這一支的出發點跟第一支相反。第一支講的是「不刷牙的後果」，
+  這一支講的是<strong>「刷牙本身很爽」</strong>。</p>
+  <p>「消除」這個動作天生就是遊戲語言 —— 消消樂、塔防、清版闖關，
+  大家的手指都已經被訓練過了。把牙刷變成武器、把氣味變成小怪，
+  不需要任何學習成本。</p>
+  <div class="pull">而且這個格式<strong>剛好吃到視差版位的特性</strong>：<br>
+  使用者可以自己控制速度，就像真的在玩。</div>
+  <figure>
+    <img src="assets/a2_style_master.jpg" alt="遊戲風格定調圖" loading="lazy">
+    <figcaption>風格定調圖。先把「這是一款遊戲的畫面」確立下來，後面所有素材都比照這張。</figcaption>
+  </figure>
+
+  <h3>小怪的設計規則</h3>
+  <p>八隻小怪全部是<strong>食物本人</strong>：洋蔥、泡麵、餅乾、咖啡、烤肉、起司⋯⋯
+  每一隻都有表情，被清掉的時候會有反應。</p>
+  <div class="grid g4">
+    <figure><img src="assets/a2_mon1.png" alt="小怪" loading="lazy"></figure>
+    <figure><img src="assets/a2_mon2.png" alt="小怪" loading="lazy"></figure>
+    <figure><img src="assets/a2_mon3.png" alt="小怪" loading="lazy"></figure>
+    <figure><img src="assets/a2_mon4.png" alt="小怪" loading="lazy"></figure>
+    <figure><img src="assets/a2_mon5.png" alt="小怪" loading="lazy"></figure>
+    <figure><img src="assets/a2_mon6.png" alt="小怪" loading="lazy"></figure>
+    <figure><img src="assets/a2_mon7.png" alt="小怪" loading="lazy"></figure>
+    <figure><img src="assets/a2_mon8.png" alt="小怪" loading="lazy"></figure>
+  </div>
+  <div class="note warn">
+    <b>這裡有一個不能踩的線</b>
+    小怪<strong>一定要是食物，不能是細菌</strong>。
+    造型上只要有一點點病菌的樣子，訴求就從「消除食物氣味」變成「抗菌」，
+    那是完全不同層級的宣稱。這一條從設計第一張圖就要守住，不能等到最後才修。
+  </div>
+
+  <h3>怎麼做出來的：把畫面拆成三層</h3>
+  <p>這支沒有用 3D 白模，因為鏡頭是完全固定的 —— 不需要排練運鏡。
+  難的地方在別的地方：<strong>UI 的數字和進度條，AI 做不出來。</strong></p>
+  <ol class="steps">
+    <li><h4>先定一張風格圖</h4><p>確立材質、光線、口腔的比例、小怪的造型語言。後面所有素材都以它為準。</p></li>
+    <li><h4>做首尾兩張圖</h4><p>A 是滿嘴小怪，B 是清乾淨、只剩薄荷。中間的動態交給 AI 補。</p></li>
+    <li><h4>UI 另外做，而且要去背</h4><p>進度條、右上角的計數器，全部另外生成在純色背景上，後期再疊上去。</p></li>
+    <li><h4>後期合成</h4><p>UI 的數字變化、進度條跑滿、產品包裝，全部在 After Effects 裡做。</p></li>
+  </ol>
+  <div class="vid2">
+    <figure><img src="assets/a2_A_monsters.jpg" alt="首張 A" loading="lazy"><figcaption>A：滿嘴小怪，牙刷剛進場</figcaption></figure>
+    <figure><img src="assets/a2_B_clean.jpg" alt="尾張 B" loading="lazy"><figcaption>B：清乾淨，只剩薄荷</figcaption></figure>
+  </div>
+  <figure>
+    <img src="assets/a2_ui_chroma.jpg" alt="UI 去背素材" loading="lazy">
+    <figcaption>UI 生成在洋紅色背景上，方便後期去背。
+    <strong>為什麼不用綠幕？</strong>因為品牌色就是綠的，用綠幕會把產品的綠一起吃掉。</figcaption>
+  </figure>
+  <div class="note bad">
+    <b>UI 一定要後期做，這是硬性限制</b>
+    AI 生成影片<strong>寫不出正確的數字</strong>，也做不出「進度條均勻跑滿」這種精確動態。
+    你叫它從 0 跑到 100，它會給你一堆亂碼數字。
+    所以只要畫面上有數字、計數器、進度條，一律當成後期工作，不要浪費時間跟 AI 溝通。
+  </div>
+
+  <h3>文字也是另外做的</h3>
+  <p>中文字同樣是 AI 的弱項 —— 筆畫會壞、會變成簡體。
+  所以標題字是單獨生成、再合成進去的。</p>
+  <div class="grid g2">
+    <figure><img src="assets/a2_txt1.jpg" alt="消消壞口氣" loading="lazy"><figcaption>主標字</figcaption></figure>
+    <figure><img src="assets/a2_txt2.jpg" alt="有效消除100種食物氣味" loading="lazy"><figcaption>訴求字，三排等寬</figcaption></figure>
+  </div>
+</section>
+
+<!-- demo 2 -->
+<section class="demo" data-base="webassets/idea4_sq_19mb/idea4_" data-count="121" id="demo2">
+  <div class="stage">
+    <div class="phone">
+      <canvas width="640" height="1280"></canvas>
+      <div class="load"><div>載入中<span class="pct"> 0%</span></div><div class="track"><i></i></div></div>
+    </div>
+    <div class="side">
+      <p class="tag">第二支 · 完成片</p>
+      <h3>口氣消消樂</h3>
+      <p>這支最適合慢慢滑。停在中間，可以看到右上角的計數器在跳、
+      左上角的進度條在跑 —— 這些細節在一般 5 秒片裡是看不到的。</p>
+      <div class="scrub"><i></i></div>
+      <div class="scrub-meta"><span class="f">FRAME 001 / 121</span><span class="t">0.00s</span></div>
+      <p class="hint"><span>↓</span> 用滑的</p>
+    </div>
+  </div>
+</section>
+
+<section class="ch col">
+  <div class="note good">
+    <b>這支在溝通什麼</b>
+    <strong>TA：</strong>泛用，特別對年輕族群與有小孩的家庭友善。<br>
+    <strong>概念：</strong>刷牙 = 清掉一整排食物氣味，是一件爽的事。<br>
+    <strong>情緒：</strong>純粹的爽感。沒有恐懼、沒有說教，
+    而且「100 種」這個數字第一次變成<strong>看得見的東西</strong>。
+  </div>
+  <nav class="chnav"><a href="#c03">← 上一章</a><a class="next" href="#c05">下一章 · 第三支 →</a></nav>
+</section>
+
+<!-- 05 -->
+<section class="ch col" id="c05">
+  <p class="ch-num">05 · 第三支</p>
+  <h2>時尚穿搭：口氣好，是最高級的時尚配件</h2>
+  <p class="lead">三個穿搭風格完全不同的人，手上都拿著重口味小吃正要入口，
+  腰上、口袋裡都掛著同一支牙膏。<strong>牙膏是配件，不是日用品。</strong></p>
+  <h3>這一支的策略反轉</h3>
+  <p>前兩支都是「你有問題 → 要解決」。這一支刻意反過來：
+  <strong>「你已經很好 → 這是你配備的一部分」</strong>。</p>
+  <div class="pull">
+    衣服穿在身上，別人一眼看到；<br>
+    口氣好壞，別人<strong>靠近</strong>才知道。<br>
+    前者決定他們注意你，後者決定他們<strong>願不願意留下來</strong>。
+  </div>
+  <p>從除臭邏輯升級成加分邏輯。這讓三支片在提案時形成一個完整的光譜：
+  恐懼、爽感、自信。</p>
+
+  <h3>三個角色的設計：差異化是唯一的重點</h3>
+  <p>三個人如果只是「三個好看的人」，這支片就沒有意義。
+  所以每一個維度都刻意拉開 —— <strong>剪影、配色、材質、情緒溫度、講話的口氣</strong>，
+  甚至連他們吃的東西、牙膏怎麼帶，都不一樣。</p>
+  <div class="grid g3">
+    <figure><img src="assets/a3_look01.jpg" alt="靜奢極簡女" loading="lazy"><figcaption><strong>靜奢極簡</strong>｜米白駝、絲與羊毛、低機位<br>牙膏收在名牌包口露出一段</figcaption></figure>
+    <figure><img src="assets/a3_look02.jpg" alt="都會機能男" loading="lazy"><figcaption><strong>都會機能</strong>｜黑綠灰、防水尼龍、高角度俯拍<br>牙膏插在腰際戰術織帶環</figcaption></figure>
+    <figure><img src="assets/a3_look03.jpg" alt="Y2K 甜酷女" loading="lazy"><figcaption><strong>Y2K 甜酷</strong>｜橘銀藍、針織與反光、胸高機位<br>牙膏插在針織背心口袋</figcaption></figure>
+  </div>
+  <div class="note good">
+    <b>三種帶法，同一支產品</b>
+    皮革訂製感 / 戰術裝備感 / 螢光吊飾感 —— 位置都在身上顯眼處，但風格語言完全不同。
+    <strong>同一支產品能融進任何風格，這件事本身就是訊息。</strong>
+  </div>
+
+  <h3>三句心裡話</h3>
+  <p>每個人都配一句內心獨白，句型完全一樣，只換食物和理由：</p>
+  <div class="grid g3">
+    <div class="tile"><span class="tag">靜奢</span><h4>正在吃豬血糕，我也不怕。</h4>
+      <p>因為真正的高級感，是在靠近的時候。</p></div>
+    <div class="tile"><span class="tag">機能</span><h4>正在吃韭菜盒，我也不怕。</h4>
+      <p>因為最強的裝備，是開口不用退半步。</p></div>
+    <div class="tile"><span class="tag">Y2K</span><h4>正在吃臭豆腐，我也不怕。</h4>
+      <p>因為口氣好，才是最狠的穿搭。</p></div>
+  </div>
+  <div class="note">
+    <b>為什麼是「正在吃」而不是「剛剛吃了」</b>
+    「剛剛吃了」講的是事後的風險 —— 吃完了，等一下要見人，有點心虛。
+    「正在吃」是<strong>當下就無所謂</strong>，嘴裡還有東西就已經不怕了，張力更強。
+    而且它跟畫面完全同步，三個人都正在入口，文案跟動作沒有時間差。
+  </div>
+  <div class="note warn">
+    <b>三種食物的選擇也是有邏輯的</b>
+    豬血糕、韭菜盒、臭豆腐 —— 三樣都是<strong>手上拿著的單一台灣小吃</strong>，
+    句式才真正平行。一開始第一個角色設定的是「麻辣鍋」，但麻辣鍋是一整頓飯、是場合，
+    跟另外兩個不對稱，所以換掉了。
+  </div>
+
+  <h3>怎麼做出來的：先排練鏡頭，再生成人</h3>
+  <p>這支的難點是<strong>三個人、三個完全不同的機位，要在 5 秒內一鏡到底串起來</strong>。
+  一樣先用白模把鏡頭排練出來。</p>
+  <div class="vid2">
+    <figure><video class="clip" src="assets/greybox_fashion_circle.mp4" autoplay muted loop playsinline controls preload="metadata"></video>
+      <figcaption><strong>第一版：三人圍成一圈</strong>，鏡頭在圓心旋轉。看起來合理，但問題很大 ——
+      鏡頭原地轉，背景幾乎不動，視差感很弱。</figcaption></figure>
+    <figure><video class="clip" src="assets/greybox_fashion_line.mp4" autoplay muted loop playsinline controls preload="metadata"></video>
+      <figcaption><strong>第二版：三人站成一排</strong>，鏡頭橫向推移＋高度階梯。
+      前中後三層以不同速率滑過，這才是視差版位要的語言。</figcaption></figure>
+  </div>
+  <div class="note good">
+    <b>改版學到的一件事</b>
+    <strong>橫移是所有運鏡裡視差最強的一種。</strong>
+    第二版還刻意把中間那個人往後退了一點、在三人之間放了幾根矮柱在鏡頭前 ——
+    橫移時它們高速掃過畫面下緣，視差就出來了。
+    這種東西在白模階段花十分鐘調，比成片出來再改便宜太多。
+  </div>
+  <details class="tech"><summary>技術細節：三個機位是怎麼算出來的（想了解可以展開）</summary>
+    <div class="body">
+      <p>三個角色各綁定一個機位，三個機位的差異<strong>來自鏡頭高度，不是來自大幅度的傾斜</strong>：</p>
+      <ul>
+        <li>靜奢女：鏡頭高 0.70m，幾乎平視</li>
+        <li>機能男：鏡頭高 2.05m，往下俯 26°</li>
+        <li>Y2K 女：鏡頭高 1.30m，略微俯視</li>
+      </ul>
+      <p>一開始設計的是「極端仰角 53°」那種誇張角度，但實際算過才發現：
+      仰角要拍到全身，鏡頭其實幾乎是平的 —— 硬加大傾斜角，腳一定會出框。
+      真正造成仰視壓迫感的是<strong>鏡頭低於人物重心</strong>這件事。</p>
+      <p>另外鏡頭從 24mm 換成 35mm。24mm 在 9:16 直幅下垂直視角高達 106°，會嚴重魚眼。</p>
+    </div>
+  </details>
+</section>
+
+<!-- demo 3 -->
+<section class="demo" data-base="webassets/idea3_sq_19mb/idea3_" data-count="121" id="demo3">
+  <div class="stage">
+    <div class="phone">
+      <canvas width="640" height="1280"></canvas>
+      <div class="load"><div>載入中<span class="pct"> 0%</span></div><div class="track"><i></i></div></div>
+    </div>
+    <div class="side">
+      <p class="tag">第三支 · 完成片</p>
+      <h3>時尚穿搭</h3>
+      <p>注意鏡頭全程只往同一個方向走，中途不回頭 ——
+      這對「滑動＝鏡頭位移」的映射很重要，使用者往回滑才不會覺得怪。</p>
+      <div class="scrub"><i></i></div>
+      <div class="scrub-meta"><span class="f">FRAME 001 / 121</span><span class="t">0.00s</span></div>
+      <p class="hint"><span>↓</span> 用滑的</p>
+    </div>
+  </div>
+</section>
+
+<section class="ch col">
+  <div class="note good">
+    <b>這支在溝通什麼</b>
+    <strong>TA：</strong>22–35 歲、重視外型與社交形象的都會男女。<br>
+    <strong>概念：</strong>口氣好是最高級的時尚單品。<br>
+    <strong>延展性：</strong>這是三支裡最好延伸的格式 ——
+    換一個穿搭族群、換一種食物、換一句話就是一支新的。
+    韓系、日雜、運動風、老錢風都能套，三張單人卡還能直接拆成三則社群貼文。
+  </div>
+  <nav class="chnav"><a href="#c04">← 上一章</a><a class="next" href="#c06">下一章 · 三支的鏡頭 →</a></nav>
+</section>
+
+<!-- 06 -->
+<section class="ch col" id="c06">
+  <p class="ch-num">06</p>
+  <h2>三支的鏡頭刻意不重複</h2>
+  <p class="lead">三支片放在一起提案時，如果運鏡都一樣，會看起來像同一支的三個版本。
+  所以鏡頭語言是刻意分配過的。</p>
+  <div class="tablewrap"><table>
+    <tr><th></th><th>攝影機</th><th>為什麼是這個</th></tr>
+    <tr><td><strong>臭豆腐頭</strong></td><td>垂直往下穿越樓板</td>
+      <td>「往下深入問題，再回來」，運鏡本身在講故事結構</td></tr>
+    <tr><td><strong>口氣消消樂</strong></td><td>完全固定不動</td>
+      <td>遊戲畫面本來就是固定機位，動的是畫面裡的東西</td></tr>
+    <tr><td><strong>時尚穿搭</strong></td><td>橫向推移＋高度階梯</td>
+      <td>橫移視差最強，也是唯一有前景遮擋層的一支</td></tr>
+  </table></div>
+  <p>一支垂直、一支靜止、一支水平 —— 三種完全不同的節奏。
+  這不只是為了好看，<strong>三支放在同一個提案裡，客戶一眼就能分辨</strong>，
+  討論的時候不會混在一起。</p>
+  <nav class="chnav"><a href="#c05">← 上一章</a><a class="next" href="#c07">下一章 · 踩過的坑 →</a></nav>
+</section>
+
+<!-- 07 -->
+<section class="ch brk col" id="c07">
+  <p class="ch-num">07 · 失敗集</p>
+  <h2>一路上踩過的坑</h2>
+  <p class="lead">這些是真的發生過、而且花了時間才修好的。
+  列出來是因為<strong>下一支片一定還會遇到同樣的問題</strong>。</p>
+
+  <h3 style="margin-top:34px">AI 影片不照著運鏡跑</h3>
+  <div class="note bad">
+    <b>問題</b>
+    白模都做好了，AI 生出來的影片卻完全不動，變成三個硬切。
+  </div>
+  <p><strong>原因是我們自己寫的指令。</strong>指令裡為了避免鏡頭亂晃，
+  寫了「不要平移、不要旋轉、不要推拉」，結果 AI 直接把運鏡整個關掉了。</p>
+  <p><strong>正確做法：</strong>不要禁止移動，而是<strong>把方向鎖死</strong> ——
+  改成「不要靜止、不要往左、不要倒退」。而且要用文字把運鏡再主動描述一次，
+  只掛參考影片是不夠的。</p>
+
+  <h3>中文字一定會壞</h3>
+  <div class="note bad">
+    <b>問題</b>
+    產品包裝上的中文字變成亂碼，或整個跑成簡體。字數越多壞得越兇。
+  </div>
+  <p>這不是指令寫得不夠好，是模型對中文字形的重建能力本來就不穩。
+  <strong>正確做法：讓 AI 生一支「無字空白管」，真正的包裝在後期貼上去。</strong></p>
+  <p>這也是實拍廣告的標準流程 —— 產品幾乎都是後期合成的。
+  而且還有一個附加好處：三支片的包裝統一在後期上，
+  顏色、比例、logo 位置會完全一致，接在一起才不會跳動。</p>
+
+  <h3>產品跑到奇怪的地方</h3>
+  <div class="note bad">
+    <b>問題</b>
+    指令寫「牙膏在包包裡」，結果 AI 把牙膏畫在褲子上。
+  </div>
+  <p>兩個原因：一是只寫「在腰際」太模糊，二是前面的角色都設定成腰掛，
+  AI 把那個概念延伸過來了。</p>
+  <p><strong>正確做法有三層：</strong>先把<strong>配件</strong>描述清楚
+  （包口朝向鏡頭、口袋是有結構的），再把產品<strong>相對於配件</strong>定位，
+  最後明確寫出<strong>禁止出現的位置</strong>（「全圖只有一支牙膏，不在褲子、腰帶、手上」）。</p>
+
+  <h3>白模第一版幾乎都會錯</h3>
+  <p>這三支片的白模沒有一支是一次過的。實際發生過的錯誤：</p>
+  <ul>
+    <li><strong>人物上下顛倒</strong> —— 攝影機的方向設反了</li>
+    <li><strong>鏡頭沒有加減速</strong> —— 忘了套用緩動，變成機械式等速移動</li>
+    <li><strong>魚眼</strong> —— 焦段太廣，直幅畫面的視角會被放大很多</li>
+    <li><strong>有方塊擋住鏡頭</strong> —— 道具離鏡頭太近</li>
+    <li><strong>腳出框</strong> —— 為了做仰角把傾斜角開太大</li>
+  </ul>
+  <p>這些看起來都很低級，但重點是 ——
+  <strong>在白模階段花十分鐘修掉，比成片出來再改便宜太多。</strong>
+  白模的價值就在這裡：它讓所有空間和鏡頭的錯誤在最便宜的階段暴露出來。</p>
+  <nav class="chnav"><a href="#c06">← 上一章</a><a class="next" href="#c08">下一章 · 可以重複用的流程 →</a></nav>
+</section>
+
+<!-- 08 -->
+<section class="ch col" id="c08">
+  <p class="ch-num">08</p>
+  <h2>這套流程可以重複用</h2>
+  <p class="lead">三支片做完之後，流程其實已經固定下來了。
+  下一個案子可以直接照著走。</p>
+  <ol class="steps">
+    <li><h4>定 INSIGHT，不要先想畫面</h4>
+      <p>先把「這個產品解決的到底是什麼問題」重新定義一次。
+      畫面是從 INSIGHT 長出來的，不是反過來。</p></li>
+    <li><h4>發散六個，收斂三個</h4>
+      <p>三個方向要彼此差異最大，不然提案會變成「三個很像的挑一個」。</p></li>
+    <li><h4>先排練鏡頭（如果鏡頭會動）</h4>
+      <p>用 3D 白模把空間、機位、速度、加減速做好。
+      鏡頭固定的片子可以跳過這一步。</p></li>
+    <li><h4>生成靜態的首尾圖</h4>
+      <p>A 到 B 的結構最穩。這一步要把角色、場景、產品位置全部定死。</p></li>
+    <li><h4>交給 AI 生成動態</h4>
+      <p>白模當運鏡參考、首尾圖當畫面參考，指令要用主動的鏡頭動詞。</p></li>
+    <li><h4>文字、數字、UI、產品，一律後期</h4>
+      <p>這四樣不要跟 AI 溝通，直接在 After Effects 做。</p></li>
+  </ol>
+  <div class="note good">
+    <b>每個工具只做它最強的那件事</b>
+    <strong>3D 白模</strong>負責空間與鏡頭 —— 它可以精確到公分和影格。<br>
+    <strong>AI 生圖</strong>負責質感與光影 —— 它可以生出實拍等級的材質。<br>
+    <strong>AI 生影片</strong>負責補中間的動態 —— 它最擅長的是把兩張圖接起來。<br>
+    <strong>After Effects</strong>負責精確的東西 —— 文字、數字、UI、產品。<br>
+    分工錯了就會卡住：叫 AI 做數字、叫白模做質感，都是在浪費時間。
+  </div>
+  <nav class="chnav"><a href="#c07">← 上一章</a><a class="next" href="#c09">下一章 · 工具與分工 →</a></nav>
+</section>
+
+<!-- 09 -->
+<section class="ch col" id="c09">
+  <p class="ch-num">09</p>
+  <h2>工具與分工</h2>
+  <div class="tablewrap"><table>
+    <tr><th>階段</th><th>工具</th><th>負責什麼</th></tr>
+    <tr><td>發想</td><td>對話式 AI</td><td>INSIGHT 發散、文案、角色設定</td></tr>
+    <tr><td>運鏡排練</td><td>Blender（白模）</td><td>空間、機位、速度、加減速</td></tr>
+    <tr><td>靜態畫面</td><td>GPT-Image 2</td><td>角色、場景、首尾定格、UI 素材</td></tr>
+    <tr><td>動態生成</td><td>Kling Omni 3.0</td><td>把首尾圖之間的動態補出來</td></tr>
+    <tr><td>後期</td><td>After Effects</td><td>文字、數字、UI 動態、產品包裝</td></tr>
+  </table></div>
+  <div class="note">
+    <b>一支片大概需要多少東西</b>
+    以第一支為例：<strong>1 支白模影片、10 張角色與場景參考圖、
+    3 張定格、1 段指令、1 輪後期</strong>。
+    白模從零到可用大約兩小時，生圖的時間主要花在重跑，後期約半天。
+  </div>
+  <nav class="chnav"><a href="#c08">← 上一章</a><span></span></nav>
+</section>
+
+<footer class="col">
+  <p>Darlie 好來 · Activemint 超氟牙膏｜5 秒視差滾動廣告製作紀錄<br>
+  內部參考文件 · 三支片皆為提案階段作品</p>
+</footer>
+
+</main>
+
+<script>
+(function(){
+  var clamp=function(v,a,b){return v<a?a:(v>b?b:v)};
+
+  function Seq(el){
+    this.el=el;
+    this.base=el.dataset.base;
+    this.count=parseInt(el.dataset.count,10);
+    this.canvas=el.querySelector('canvas');
+    this.ctx=this.canvas.getContext('2d');
+    this.load=el.querySelector('.load');
+    this.pct=el.querySelector('.pct');
+    this.track=el.querySelector('.track i');
+    this.scrub=el.querySelector('.scrub i');
+    this.fLabel=el.querySelector('.scrub-meta .f');
+    this.tLabel=el.querySelector('.scrub-meta .t');
+    this.imgs=new Array(this.count);
+    this.ok=new Array(this.count);
+    this.done=0; this.cur=-1; this.started=false; this.ready=false;
+    var self=this;
+    if('IntersectionObserver' in window){
+      var io=new IntersectionObserver(function(es){
+        if(es[0].isIntersecting){ io.disconnect(); self.start(); }
+      },{rootMargin:'800px 0px'});
+      io.observe(el);
+    } else { this.start(); }
+  }
+  Seq.prototype.pad=function(n){ var s=''+n; while(s.length<5) s='0'+s; return s; };
+  Seq.prototype.start=function(){
+    if(this.started) return; this.started=true;
+    var self=this, next=0, CONC=10;
+    function one(){
+      if(next>=self.count) return;
+      var i=next++;
+      var im=new Image();
+      im.decoding='async';
+      im.onload=function(){ self.imgs[i]=im; self.ok[i]=1; self.tick(); one(); };
+      im.onerror=function(){ self.ok[i]=0; self.tick(); one(); };
+      im.src=self.base+self.pad(i)+'.jpg';
+    }
+    for(var k=0;k<CONC;k++) one();
+  };
+  Seq.prototype.tick=function(){
+    this.done++;
+    var p=this.done/this.count;
+    if(this.pct) this.pct.textContent=' '+Math.round(p*100)+'%';
+    if(this.track) this.track.style.width=(p*100)+'%';
+    if(!this.ready && this.done>=Math.min(8,this.count)){
+      this.ready=true; this.load.classList.add('done'); this.render();
+    }
+    if(this.done>=this.count){ this.load.classList.add('done'); this.render(); }
+  };
+  Seq.prototype.progress=function(){
+    var r=this.el.getBoundingClientRect();
+    var span=this.el.offsetHeight-window.innerHeight;
+    if(span<=0) return 0;
+    return clamp(-r.top/span,0,1);
+  };
+  Seq.prototype.render=function(){
+    if(!this.started) return;
+    var p=this.progress();
+    var want=Math.round(p*(this.count-1));
+    if(this.scrub) this.scrub.style.width=(p*100)+'%';
+    if(this.fLabel) this.fLabel.textContent='FRAME '+this.pad(want+1).slice(2)+' / '+this.count;
+    if(this.tLabel) this.tLabel.textContent=(want/24).toFixed(2)+'s';
+    var i=want;
+    if(!this.ok[i]){
+      var lo=i, hi=i;
+      while(lo>0 && !this.ok[lo]) lo--;
+      while(hi<this.count-1 && !this.ok[hi]) hi++;
+      i = this.ok[lo] ? lo : (this.ok[hi]?hi:-1);
+    }
+    if(i<0 || i===this.cur) return;
+    this.cur=i;
+    var im=this.imgs[i];
+    if(!im) return;
+    this.ctx.drawImage(im,0,0,this.canvas.width,this.canvas.height);
+  };
+
+  var seqs=[].slice.call(document.querySelectorAll('.demo')).map(function(el){return new Seq(el)});
+  var raf=false;
+  function onScroll(){
+    if(raf) return; raf=true;
+    requestAnimationFrame(function(){
+      raf=false;
+      for(var i=0;i<seqs.length;i++){
+        var r=seqs[i].el.getBoundingClientRect();
+        if(r.bottom>-200 && r.top<window.innerHeight+200) seqs[i].render();
+      }
+    });
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',onScroll);
+  onScroll();
+
+  // nav highlight
+  var links=[].slice.call(document.querySelectorAll('#railnav a,#topnav a'));
+  var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'))}).filter(Boolean);
+  function mark(){
+    var y=window.scrollY+window.innerHeight*0.32, id=null;
+    for(var i=0;i<secs.length;i++){ if(secs[i].offsetTop<=y) id='#'+secs[i].id; }
+    links.forEach(function(a){ a.classList.toggle('on', a.getAttribute('href')===id) });
+    var on=document.querySelector('#topnav a.on');
+    if(on && on.parentNode.scrollWidth>on.parentNode.clientWidth){
+      var p=on.parentNode;
+      var want=on.offsetLeft-p.clientWidth/2+on.clientWidth/2;
+      if(Math.abs(p.scrollLeft-want)>40) p.scrollTo({left:want,behavior:'smooth'});
+    }
+  }
+  window.addEventListener('scroll',function(){ if(!window.__m){ window.__m=1;
+    requestAnimationFrame(function(){ window.__m=0; mark(); }); } },{passive:true});
+  mark();
+})();
+</script>
+</body>
+</html>
