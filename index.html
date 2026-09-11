@@ -19,7 +19,7 @@
   --f-head:"Noto Serif TC",Georgia,"Songti TC",serif;
   --f-body:"Noto Sans TC",-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
   --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
-  --rail:268px;
+  --rail:268px; --hdr:0px;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -47,6 +47,7 @@ img{max-width:100%;display:block}
 .rail-nav a.brk.on .n{color:var(--ochre-hi)}
 .topbar{display:none}
 @media(max-width:1060px){
+  :root{--hdr:52px}
   .rail{display:none}
   .topbar{display:block;position:sticky;top:0;z-index:30;background:rgba(11,16,14,.92);
     backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
@@ -189,8 +190,9 @@ td strong{color:var(--text);font-weight:500}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
 @media(max-width:860px){
   .demo{height:300vh}
-  .demo .stage{flex-direction:column;gap:14px;justify-content:flex-start;padding-top:5vh}
-  .phone{height:min(60vh,560px)}
+  .demo .stage{flex-direction:column;gap:12px;justify-content:flex-start;
+    top:var(--hdr);height:calc(100vh - var(--hdr));padding:18px 16px 0}
+  .phone{height:min(56vh,520px)}
   .demo .side{flex:0 0 auto;max-width:520px;text-align:center}
   .demo .side p:not(.tag):not(.hint){display:none}
   .demo .side h3{font-size:21px;margin-bottom:6px}
@@ -866,10 +868,12 @@ footer a{color:var(--text-2)}
     if(this.done>=this.count){ this.load.classList.add('done'); this.render(); }
   };
   Seq.prototype.progress=function(){
+    var stage=this.el.querySelector('.stage');
+    var top=parseFloat(getComputedStyle(stage).top)||0;
     var r=this.el.getBoundingClientRect();
-    var span=this.el.offsetHeight-window.innerHeight;
+    var span=this.el.offsetHeight-stage.offsetHeight;
     if(span<=0) return 0;
-    return clamp(-r.top/span,0,1);
+    return clamp((top-r.top)/span,0,1);
   };
   Seq.prototype.render=function(){
     if(!this.started) return;
