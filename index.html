@@ -128,12 +128,19 @@ details.tech .body code{font-family:var(--f-mono);font-size:13px;background:var(
 figure{margin:30px 0}
 figure img{border:1px solid var(--line);background:var(--surface)}
 figcaption{font-size:14px;color:var(--text-3);margin-top:9px;line-height:1.7}
+/* 直式素材（9:16 影片、直幅參考圖）不要佔滿整欄 */
+figure.port{max-width:400px;margin-left:auto;margin-right:auto}
+figure.port figcaption{text-align:left}
+@media(max-width:520px){figure.port{max-width:78vw}}
 .grid{display:grid;gap:14px;margin:30px 0}
 .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
 .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .g4{grid-template-columns:repeat(4,minmax(0,1fr))}
 @media(max-width:760px){.g3,.g4{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:460px){.g2,.g3,.g4{grid-template-columns:1fr}}
+@media(max-width:460px){.g2,.g3{grid-template-columns:1fr}}
+/* 小圖群組（小怪等）在手機保持兩欄，不要拉成一長排 */
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:460px){.g4{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
 .grid figure{margin:0}
 .tile{border:1px solid var(--line);background:var(--bg-2);padding:14px 16px}
 .tile h4{margin:0 0 7px;font-size:15.5px;font-weight:500;color:var(--text)}
@@ -200,7 +207,7 @@ td strong{color:var(--text);font-weight:500}
 
 video.clip{width:100%;border:1px solid var(--line);background:#000;display:block}
 .vid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:30px 0}
-@media(max-width:620px){.vid2{grid-template-columns:1fr}}
+@media(max-width:470px){.vid2{grid-template-columns:1fr}}
 .vid2 figure{margin:0}
 
 footer{padding:70px 0 110px;color:var(--text-3);font-size:15px}
@@ -225,9 +232,10 @@ footer a{color:var(--text-2)}
     <a href="#c04"><span class="n">04</span><span>第二支 · 口氣消消樂</span></a>
     <a href="#c05"><span class="n">05</span><span>第三支 · 時尚穿搭</span></a>
     <a href="#c06"><span class="n">06</span><span>三支的鏡頭不重複</span></a>
-    <a href="#c07" class="brk"><span class="n">07</span><span>踩過的坑</span></a>
-    <a href="#c08"><span class="n">08</span><span>可以重複用的流程</span></a>
-    <a href="#c09"><span class="n">09</span><span>工具與分工</span></a>
+    <a href="#c07" class="brk"><span class="n">07</span><span>細節要落到多細</span></a>
+    <a href="#c08" class="brk"><span class="n">08</span><span>踩過的坑</span></a>
+    <a href="#c09"><span class="n">09</span><span>可以重複用的流程</span></a>
+    <a href="#c10"><span class="n">10</span><span>工具與分工</span></a>
   </div>
 </nav>
 
@@ -239,9 +247,10 @@ footer a{color:var(--text-2)}
   <a href="#c04">04 消消樂</a>
   <a href="#c05">05 時尚穿搭</a>
   <a href="#c06">06 鏡頭</a>
-  <a href="#c07" class="brk">07 踩坑</a>
-  <a href="#c08">08 流程</a>
-  <a href="#c09">09 工具</a>
+  <a href="#c07" class="brk">07 細節多細</a>
+  <a href="#c08" class="brk">08 踩坑</a>
+  <a href="#c09">09 流程</a>
+  <a href="#c10">10 工具</a>
 </div></div>
 
 <main class="shell">
@@ -360,7 +369,7 @@ footer a{color:var(--text-2)}
   <p>後來的轉折是把 INSIGHT 逼到最極端 —— <strong>如果別人聞到的就是你的全部，
   那不如直接讓那個氣味變成你的臉。</strong>一旦這樣定義，畫面就自己長出來了：
   不需要任何說明文字，任何人看第一眼就懂。</p>
-  <figure>
+  <figure class="port">
     <img src="assets/a1_tofuhead.jpg" alt="臭豆腐頭上班族" loading="lazy">
     <figcaption>核心視覺。荒謬，但完全不需要解釋 —— 這是 5 秒片最需要的性質。</figcaption>
   </figure>
@@ -387,7 +396,7 @@ footer a{color:var(--text-2)}
   <p>解法是先在 3D 軟體裡把鏡頭運動「排練」一次 ——
   用最簡單的灰色方塊搭出空間和人物，把鏡頭的路徑、速度、加減速全部做好，
   輸出成一支小影片，再把它當成範本餵給 AI。</p>
-  <figure>
+  <figure class="port">
     <video class="clip" src="assets/greybox_office.mp4" autoplay muted loop playsinline controls preload="metadata"></video>
     <figcaption>這就是所謂的「白模」。醜沒關係 —— 它唯一的工作是告訴 AI 鏡頭怎麼走、人站在哪裡。</figcaption>
   </figure>
@@ -406,22 +415,62 @@ footer a{color:var(--text-2)}
     </div>
   </details>
 
-  <h3>把場景和角色拆成「零件」</h3>
+  <h3>第一次嘗試：把場景和角色拆成「零件」（後來放棄了）</h3>
   <p>光有鏡頭還不夠，AI 還需要知道「長什麼樣子」。
-  所以我們另外生成了一組參考圖，每個角色給多角度、每個場景給多視角，
-  讓 AI 不會在 5 秒內把人臉換掉。</p>
+  我們的第一個想法是<strong>把畫面裡的每個東西都拆成獨立的參考素材</strong>——
+  這在生成工具裡叫做 <strong>elements（元素）</strong>。</p>
+  <p>每個角色做一張多角度的「三面圖」，每個場景做一張空景，
+  想說這樣 AI 就不用猜背面長什麼樣，5 秒內臉也不會變。</p>
   <div class="grid g3">
     <figure><img src="assets/a1_el_tofuman.jpg" alt="臭豆腐頭多角度" loading="lazy"><figcaption>主角的四個角度</figcaption></figure>
-    <figure><img src="assets/a1_el_manface.jpg" alt="人物多角度" loading="lazy"><figcaption>恢復正常後的臉</figcaption></figure>
-    <figure><img src="assets/a1_el_office2.jpg" alt="會議室" loading="lazy"><figcaption>會議室空景</figcaption></figure>
-    <figure><img src="assets/a1_el_office1.jpg" alt="會議室直式" loading="lazy"><figcaption>會議室直式構圖</figcaption></figure>
-    <figure><img src="assets/a1_el_restroom1.jpg" alt="洗手間" loading="lazy"><figcaption>洗手台場景</figcaption></figure>
-    <figure><img src="assets/a1_el_restroom2.jpg" alt="洗手間 2" loading="lazy"><figcaption>洗手台第二視角</figcaption></figure>
+    <figure><img src="assets/a1_el_man.jpg" alt="男主角多角度" loading="lazy"><figcaption>恢復正常後的主角</figcaption></figure>
+    <figure><img src="assets/a1_el_manface.jpg" alt="人物臉部多角度" loading="lazy"><figcaption>臉部細節</figcaption></figure>
+    <figure><img src="assets/a1_el_girlL.jpg" alt="左側女同事多角度" loading="lazy"><figcaption>左側女同事</figcaption></figure>
+    <figure><img src="assets/a1_el_girlR.jpg" alt="右側女同事多角度" loading="lazy"><figcaption>右側女同事</figcaption></figure>
+    <figure><img src="assets/a1_el_office2.jpg" alt="會議室空景" loading="lazy"><figcaption>會議室空景</figcaption></figure>
   </div>
-  <div class="note">
-    <b>為什麼要給這麼多角度</b>
-    AI 生成影片時，只要鏡頭一轉，它就得「想像」背面長什麼樣。
-    給了多角度參考之後，它就不用猜 —— 這是讓 5 秒內臉不會變的關鍵。
+  <div class="note bad">
+    <b>結果失敗了，原因是一個硬性限制</b>
+    <p>在 Kling 的 <strong>video reference 模式</strong>下（也就是掛了白模影片的時候），
+    <strong>elements 最多只能放 4 個</strong>。</p>
+    <p>但我們這支片光角色就有四個（臭豆腐頭男、恢復後的男主角、兩位女同事），
+    再加上會議室和洗手台兩個場景，<strong>總共需要六到七個 —— 根本放不下。</strong></p>
+    <p>硬塞進去的結果是：只能挑四個，剩下的 AI 自己想像，
+    生出來的畫面角色對不上、場景也不是我們要的。</p>
+  </div>
+
+  <h3>最後的做法：改成給三張「定 cut」</h3>
+  <p>放棄 elements 之後，我們換了一個思路：
+  <strong>與其把東西拆開讓 AI 自己組，不如直接把三個關鍵時刻「畫好」給它。</strong></p>
+  <p>這三張圖就是三個定格——每一張裡面，角色、表情、場景、構圖全部已經到位。
+  AI 要做的只剩一件事：<strong>把三張圖之間的動態補出來</strong>。</p>
+  <div class="grid g3">
+    <figure><img src="assets/a1_shot1.jpg" alt="定 cut 1 會議室" loading="lazy">
+      <figcaption><strong>定 cut 1 · 問題</strong><br>臭豆腐頭在會議室，兩側同事掩鼻後退</figcaption></figure>
+    <figure><img src="assets/a1_shot2.jpg" alt="定 cut 2 洗手台" loading="lazy">
+      <figcaption><strong>定 cut 2 · 行動</strong><br>洗手台前刷牙，透過鏡子看到正面</figcaption></figure>
+    <figure><img src="assets/a1_shot3.jpg" alt="定 cut 3 會議室" loading="lazy">
+      <figcaption><strong>定 cut 3 · 結果</strong><br>恢復正常的臉，同事靠回來</figcaption></figure>
+  </div>
+  <p>最後送進生成工具的素材只有四樣：
+  <strong>一支白模影片（管運鏡）＋ 三張定 cut（管畫面）</strong>。乾淨、明確、沒有超出額度。</p>
+
+  <div class="note good">
+    <b>從這件事學到的兩件事</b>
+    <p><strong>一、先確認工具的額度限制，再決定素材要怎麼拆。</strong>
+    每種生成模式能掛幾張參考圖是不一樣的，掛了影片之後額度還會再縮。
+    這個數字要在開始做素材之前就查清楚，不然做完才發現放不下。</p>
+    <p><strong>二、定 cut 比 elements 更可控。</strong>
+    elements 是「給零件讓 AI 自己組」，變數很多；
+    定 cut 是「畫面已經完成，只補中間的動態」，
+    AI 需要自由發揮的空間變小，出錯的機會也跟著變小。</p>
+  </div>
+
+  <div class="note warn">
+    <b>那 elements 什麼時候才有用</b>
+    不是完全沒用——<strong>角色少、又需要多角度連戲</strong>的時候它還是好用的，
+    例如只有一個主角、鏡頭會繞著他轉。
+    這次的問題單純是<strong>角色太多、額度不夠</strong>。
   </div>
 </section>
 
@@ -469,7 +518,7 @@ footer a{color:var(--text-2)}
   不需要任何學習成本。</p>
   <div class="pull">而且這個格式<strong>剛好吃到視差版位的特性</strong>：<br>
   使用者可以自己控制速度，就像真的在玩。</div>
-  <figure>
+  <figure class="port">
     <img src="assets/a2_style_master.jpg" alt="遊戲風格定調圖" loading="lazy">
     <figcaption>風格定調圖。先把「這是一款遊戲的畫面」確立下來，後面所有素材都比照這張。</figcaption>
   </figure>
@@ -507,7 +556,7 @@ footer a{color:var(--text-2)}
     <figure><img src="assets/a2_A_monsters.jpg" alt="首張 A" loading="lazy"><figcaption>A：滿嘴小怪，牙刷剛進場</figcaption></figure>
     <figure><img src="assets/a2_B_clean.jpg" alt="尾張 B" loading="lazy"><figcaption>B：清乾淨，只剩薄荷</figcaption></figure>
   </div>
-  <figure>
+  <figure class="port">
     <img src="assets/a2_ui_chroma.jpg" alt="UI 去背素材" loading="lazy">
     <figcaption>UI 生成在洋紅色背景上，方便後期去背。
     <strong>為什麼不用綠幕？</strong>因為品牌色就是綠的，用綠幕會把產品的綠一起吃掉。</figcaption>
@@ -696,12 +745,136 @@ footer a{color:var(--text-2)}
   <p>一支垂直、一支靜止、一支水平 —— 三種完全不同的節奏。
   這不只是為了好看，<strong>三支放在同一個提案裡，客戶一眼就能分辨</strong>，
   討論的時候不會混在一起。</p>
-  <nav class="chnav"><a href="#c05">← 上一章</a><a class="next" href="#c07">下一章 · 踩過的坑 →</a></nav>
+  <nav class="chnav"><a href="#c05">← 上一章</a><a class="next" href="#c07">下一章 · 細節要落到多細 →</a></nav>
 </section>
 
 <!-- 07 -->
 <section class="ch brk col" id="c07">
-  <p class="ch-num">07 · 失敗集</p>
+  <p class="ch-num">07 · 待討論</p>
+  <h2>三天三支：提案的細節要落到多細？</h2>
+  <p class="lead">這一章沒有結論，是<strong>要在會議上決定的事</strong>。
+  下面兩個案例都是這批片子裡真實存在、而且我們刻意留著沒修的問題。</p>
+
+  <h3>為什麼這個問題現在才浮出來</h3>
+  <p>以前一支片做五天，細節會在來回的過程中自然被磨完，
+  沒有人需要決定「哪些瑕疵可以留」——因為時間夠，全部都修。</p>
+  <p>現在三天可以出三支，等於<strong>一天一支</strong>。
+  <strong>速度快了五倍，但磨細節的時間沒有等比增加。</strong>
+  所以這變成一個必須主動決定的問題：哪些瑕疵值得花時間修，哪些不值得。</p>
+  <div class="pull">
+    如果每一個瑕疵都要修到完美，<br>
+    <strong>「三天三支」這個優勢就消失了。</strong><br>
+    但如果什麼都不修，提案會被瑕疵綁架，講不到創意。
+  </div>
+
+  <h3>先提一個分級框架（可以在會議上被推翻）</h3>
+  <div class="grid g3">
+    <div class="tile"><span class="tag">A 級 · 一定要修</span><h4>會讓人誤判創意或可行性</h4>
+      <p>看到這個瑕疵，客戶會懷疑「這個 idea 本身有問題」或「這個技術做不出來」。</p></div>
+    <div class="tile"><span class="tag">B 級 · 口頭帶過</span><h4>已知可解、後期一定會處理</h4>
+      <p>我們已經知道正確做法，只是這一版沒做。提案時一句話交代清楚即可。</p></div>
+    <div class="tile"><span class="tag">C 級 · 不用管</span><h4>只有自己看得出來</h4>
+      <p>不影響理解、不影響判斷。花時間修這個是浪費。</p></div>
+  </div>
+  <p><strong>分級的判準只有一個問題：</strong>
+  這個瑕疵會不會讓對方<strong>誤判</strong>？誤判創意、誤判可行性、誤判專業度。
+  會的話是 A 級，不會的話往下放。</p>
+
+  <h3>案例一｜第二支「口氣消消樂」：牙刷拿反 ＋ 過場壞掉</h3>
+  <p>整支片的核心動作就是「牙刷把小怪掃掉」。但實際生成出來的結果，
+  <strong>牙刷的朝向在片中途整個翻掉</strong>，中間還夾了一段 AI 硬轉方向造成的奇怪過場。</p>
+  <div class="grid g3">
+    <figure><img src="assets/ev_brush_ok.jpg" alt="前段牙刷朝向" loading="lazy">
+      <figcaption><strong>約 1.2 秒</strong>｜牙刷從左上進場，刷毛朝向牙齒。這段是對的。</figcaption></figure>
+    <figure><img src="assets/ev_brush_flip.jpg" alt="中段牙刷朝向改變" loading="lazy">
+      <figcaption><strong>約 2.7 秒</strong>｜朝向開始翻轉，刷毛與運動方向的關係變得不合理。</figcaption></figure>
+    <figure><img src="assets/ev_brush_break.jpg" alt="過場壞掉" loading="lazy">
+      <figcaption><strong>約 3.1 秒</strong>｜AI 硬轉方向的過場，刷頭與握把的關係整個壞掉。</figcaption></figure>
+  </div>
+  <div class="note bad">
+    <b>我的判斷：A 級，建議重算</b>
+    <p>理由不是「不好看」，而是<strong>武器拿反等於核心動作錯了</strong>。
+    這支片要講的就是「用牙刷清掉氣味」，牙刷本身的使用方式錯誤，
+    客戶不會當成 AI 的小瑕疵，會當成<strong>這個 idea 沒想清楚</strong>。</p>
+    <p>還有一個版位特性加重了這件事：
+    <strong>視差滾動版位沒有「很快帶過」這回事。</strong>
+    使用者可以停在壞掉的那一格，想看多久看多久。</p>
+  </div>
+  <div class="note">
+    <b>反方意見（值得認真考慮）</b>
+    <p>重算要花時間，而且<strong>不保證一次過</strong>——生成式工具沒有「修這一個地方」這種操作，
+    重跑等於重新抽一次，可能抽到更差的。</p>
+    <p>而且提案階段本來就是溝通概念，不是驗收成品。
+    如果每個動作細節都要正確才能提案，等於回到傳統的製作節奏。</p>
+  </div>
+  <div class="note good">
+    <b>折衷方案</b>
+    不用整支重算。兩個成本低很多的做法：
+    <strong>一、只重跑有問題的那個區段</strong>（約 2.5–3.5 秒那一段），前後接回去；
+    <strong>二、把壞掉的那幾格抽掉</strong>，用定格或加速帶過。
+    視差版位是圖序列，抽格比影片好處理。
+  </div>
+
+  <h3>案例二｜第三支「時尚穿搭」：包裝副標模糊</h3>
+  <p>三個角色身上的牙膏包裝，<strong>「DARLIE 好來」讀得出來，但副標整片是糊的</strong>。
+  這次是因為直接把包裝交給 AI 生，沒有走「生空白管 → 後期貼真包裝」的正規流程。</p>
+  <div class="grid g3">
+    <figure><img src="assets/ev_pack1.jpg" alt="LOOK 01 包裝細節" loading="lazy">
+      <figcaption><strong>LOOK 01</strong>｜包口內，品牌名清楚、副標糊</figcaption></figure>
+    <figure><img src="assets/ev_pack2.jpg" alt="LOOK 02 包裝細節" loading="lazy">
+      <figcaption><strong>LOOK 02</strong>｜腰際織帶環，三張裡最清楚的一張</figcaption></figure>
+    <figure><img src="assets/ev_pack3.jpg" alt="LOOK 03 包裝細節" loading="lazy">
+      <figcaption><strong>LOOK 03</strong>｜胸前口袋，Logo 的圖案也跑掉了</figcaption></figure>
+  </div>
+  <div class="note warn">
+    <b>我的判斷：B 級，口頭帶過</b>
+    <p>兩個理由。第一，<strong>這是已知可解的問題，不是風險</strong>——
+    正確流程（生無字空白管、真包裝後期貼上）我們已經驗證過，
+    而且後期合成還能保證三支片的包裝完全一致。</p>
+    <p>第二，<strong>品牌名讀得出來</strong>。對方第一眼認得出這是好來，
+    創意的訊息沒有被擋住。</p>
+    <p>提案時的講法：「產品包裝為示意，定稿一律以後期合成正式包裝，
+    這也是為了讓三支片的包裝呈現完全一致。」</p>
+  </div>
+  <div class="note">
+    <b>反方意見</b>
+    <p>客戶是<strong>品牌方</strong>，對自己的包裝比任何人敏感。
+    模糊或變形的 logo 有可能被解讀成不夠尊重品牌資產，
+    這個風險跟「畫面好不好看」是兩回事。</p>
+  </div>
+  <div class="note good">
+    <b>折衷方案</b>
+    至少把<strong>當主視覺的那一張修好</strong>（LOOK 02 的俯角機位，產品本來就最清楚），
+    其餘兩張維持現狀並口頭說明。用一張的成本換掉大部分風險。
+  </div>
+
+  <h3>要當場決議的三件事</h3>
+  <ol class="steps">
+    <li><h4>提案階段的最低標準是什麼</h4>
+      <p>訂一條線，之後每一支都照這條走，不要每次重新吵。
+      我的提案是上面的 A／B／C 分級，但判準可以討論。</p></li>
+    <li><h4>重算的預算怎麼抓</h4>
+      <p>時間上限？次數上限？<strong>如果重跑三次都沒抽到好的，該停損還是繼續？</strong>
+      這個要事先講好，不然臨場一定會超支。</p></li>
+    <li><h4>「產品包裝一律後期」要不要變成硬規定</h4>
+      <p>如果變成規定，以後就不會有這次的爭議，
+      但代價是<strong>每一支片都多一道後期工序</strong>，連純提案的版本也要做。
+      或是只規定「對外提案版」必須做，內部討論版可以省。</p></li>
+  </ol>
+
+  <div class="note good">
+    <b>我的整體建議</b>
+    把<strong>「提案版」和「上線版」的標準分開寫成兩份清單</strong>。
+    現在的痛苦來自於我們心裡只有一套標準——上線版的標準——
+    然後在提案階段拿它來檢查，就會覺得每一支都不合格。
+    <strong>兩套標準各自明確，才能放心地快。</strong>
+  </div>
+  <nav class="chnav"><a href="#c06">← 上一章</a><a class="next" href="#c08">下一章 · 踩過的坑 →</a></nav>
+</section>
+
+<!-- 08 -->
+<section class="ch brk col" id="c08">
+  <p class="ch-num">08 · 失敗集</p>
   <h2>一路上踩過的坑</h2>
   <p class="lead">這些是真的發生過、而且花了時間才修好的。
   列出來是因為<strong>下一支片一定還會遇到同樣的問題</strong>。</p>
@@ -751,12 +924,12 @@ footer a{color:var(--text-2)}
   <p>這些看起來都很低級，但重點是 ——
   <strong>在白模階段花十分鐘修掉，比成片出來再改便宜太多。</strong>
   白模的價值就在這裡：它讓所有空間和鏡頭的錯誤在最便宜的階段暴露出來。</p>
-  <nav class="chnav"><a href="#c06">← 上一章</a><a class="next" href="#c08">下一章 · 可以重複用的流程 →</a></nav>
+  <nav class="chnav"><a href="#c07">← 上一章</a><a class="next" href="#c09">下一章 · 可以重複用的流程 →</a></nav>
 </section>
 
 <!-- 08 -->
-<section class="ch col" id="c08">
-  <p class="ch-num">08</p>
+<section class="ch col" id="c09">
+  <p class="ch-num">09</p>
   <h2>這套流程可以重複用</h2>
   <p class="lead">三支片做完之後，流程其實已經固定下來了。
   下一個案子可以直接照著走。</p>
@@ -784,12 +957,12 @@ footer a{color:var(--text-2)}
     <strong>After Effects</strong>負責精確的東西 —— 文字、數字、UI、產品。<br>
     分工錯了就會卡住：叫 AI 做數字、叫白模做質感，都是在浪費時間。
   </div>
-  <nav class="chnav"><a href="#c07">← 上一章</a><a class="next" href="#c09">下一章 · 工具與分工 →</a></nav>
+  <nav class="chnav"><a href="#c08">← 上一章</a><a class="next" href="#c10">下一章 · 工具與分工 →</a></nav>
 </section>
 
 <!-- 09 -->
-<section class="ch col" id="c09">
-  <p class="ch-num">09</p>
+<section class="ch col" id="c10">
+  <p class="ch-num">10</p>
   <h2>工具與分工</h2>
   <div class="tablewrap"><table>
     <tr><th>階段</th><th>工具</th><th>負責什麼</th></tr>
@@ -805,7 +978,7 @@ footer a{color:var(--text-2)}
     3 張定格、1 段指令、1 輪後期</strong>。
     白模從零到可用大約兩小時，生圖的時間主要花在重跑，後期約半天。
   </div>
-  <nav class="chnav"><a href="#c08">← 上一章</a><span></span></nav>
+  <nav class="chnav"><a href="#c09">← 上一章</a><span></span></nav>
 </section>
 
 <footer class="col">
